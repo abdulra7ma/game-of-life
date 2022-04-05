@@ -1,55 +1,96 @@
-import time
 import tkinter
+from main import Chicken, Seed, Board
+from PIL import Image, ImageTk
 
 
 class GameOfLife:
-    def __init__(self, board):
+    def __init__(self, board: Board):
         self.parent: tkinter.TK = tkinter.Tk()
         self.board = board
+        self.CELL_WIDTH = 40
+        self.CELL_HIEGHT = 41
 
         self.initailizeGUI()
 
     def initailizeGUI(self):
+        """
+        initiate the main elements on tkinter GUI
+
+        Variables:
+            canvas: where we draw the cells of the game
+            restart_button: button to restart the game with a new board of random cells
+        """
         self.canvas = tkinter.Canvas(
             self.parent,
-            width=1080,
-            height=540,
+            width=self.CELL_WIDTH * self.board.row,
+            height=self.CELL_HIEGHT * self.board.column,
         )
         self.canvas.pack()
 
+        # draw the first generate cells
         self.draw_board(self.board.get_main_board)
 
-        # restart butten
         restart_button = tkinter.Button(
             self.parent, text="reset the game", command=lambda: self.rest()
         )
         restart_button.pack()
 
+        # excutes the `loop` function after
+        # one second of starting the GUI
         self.parent.after(1000, self.loop)
 
         self.run()
 
     def draw_board(self, board):
-        x = 7.5
-        y = 6.5
+        """
+        draw the given board on the canvas
+        """
+
         for i in range(self.board.row):
             for j in range(self.board.column):
-                if board[i][j] == 1:
-                    self.canvas.create_rectangle(
-                        i * x,
-                        j * x,
-                        i * x + y,
-                        j * x + y,
-                        fill="chartreuse2",
-                    )
-                else:
-                    self.canvas.create_rectangle(
-                        i * x,
-                        j * x,
-                        i * x + y,
-                        j * x + y,
-                        fill="brown4",
-                    )
+                try:
+                    cell = board[i][j]
+
+                    if cell.__class__.__name__ == Chicken.__name__:
+                        if cell.status == 1 and cell.gender == 0:
+                            img = ImageTk.PhotoImage(file="chicken_chick.png")
+                            self.draw_image(i, j, img)
+
+                            # self.draw_rectangle(
+                            #     i,
+                            #     j,
+                            #     "pink",
+                            # )
+                        elif cell.status == 2:
+                            self.draw_rectangle(i, j, "black")
+                        elif cell.status == 1 and cell.gender == 1:
+                            self.draw_rectangle(i, j, "gray")
+
+                    elif cell.__class__.__name__ == Seed.__name__:
+                        if cell.color == "green":
+                            self.draw_rectangle(i, j, "green")
+                        else:
+                            self.draw_rectangle(i, j, "yellow")
+                except AttributeError:
+                    self.draw_rectangle(i, j, "white")
+
+    def draw_rectangle(self, i, j, color):
+        x = self.CELL_WIDTH
+        y = self.CELL_HIEGHT
+
+        self.canvas.create_rectangle(
+            i * x,
+            j * x,
+            i * x + y,
+            j * x + y,
+            fill=color,
+        )
+
+    def draw_image(self, i, j, img):
+        x = self.CELL_WIDTH
+        y = self.CELL_HIEGHT
+
+        self.canvas.create_image(i * x, j * y, image=img)
 
     def update_board(self):
         self.board.update_board()
@@ -60,7 +101,11 @@ class GameOfLife:
         self.parent.after(1000, self.loop)
 
     def rest(self):
-        board = self.board.generate_board(self.board.row, self.board.column)
+        """
+        Reset the cells board and initiate a new board of random cells
+        """
+
+        board = self.board.generate_board()
         self.draw_board(board)
         self.board.set_main_board(board)
         self.update_board()
@@ -68,4 +113,5 @@ class GameOfLife:
 
     def run(self):
         """Go into the Tk main processing loop."""
+
         self.parent.mainloop()
