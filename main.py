@@ -55,9 +55,9 @@ class Chicken:
             return False
 
         if (
-            self._breed_times > 0
-            and self.eated_seeds < 6
-            and self.eated_seeds > 2
+            self._breed_times > 0 and
+            self.eated_seeds < 6 and
+            self.eated_seeds > 2
         ):
             return True
 
@@ -175,8 +175,8 @@ class Board(object):
 
     def _is_alive(self, cell_pos: tuple, cells: list) -> bool:
         if (
-            self._get_alive_neighbours_count(cell_pos) in (2, 3)
-            and cells[cell_pos[0]][cell_pos[1]] == 1
+            self._get_alive_neighbours_count(cell_pos) in (2, 3) and
+            cells[cell_pos[0]][cell_pos[1]] == 1
         ):
             return True
         return False
@@ -196,8 +196,8 @@ class Board(object):
     def is_seed_object(self, cell_index):
         return (
             True
-            if self.get_main_board[cell_index[0]][cell_index[1]].status
-            == self.SEED
+            if self.get_main_board[cell_index[0]][cell_index[1]].status ==
+            self.SEED
             else False
         )
 
@@ -277,8 +277,8 @@ class Board(object):
                                     if (
                                         self.get_main_board[seed[0]][
                                             seed[1]
-                                        ].color
-                                        == "green"
+                                            ].color == 
+                                        "green"
                                     ):
                                         board[cell_pos[0]][
                                             cell_pos[1]
@@ -310,8 +310,8 @@ class Board(object):
         cells = self._get_neighbours_indexes(cell_pos)
         return (
             True
-            if len([cell for cell in cells if board[cell[0]][cell[1]] == 0])
-            > 1
+            if len([cell for cell in cells if board[cell[0]][cell[1]] == 0]) >
+            1
             else False
         )
 

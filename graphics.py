@@ -5,7 +5,7 @@ from PIL import Image, ImageTk
 
 class GameOfLife:
     def __init__(self, board: Board):
-        self.parent: tkinter.TK = tkinter.Tk()
+        self.parent = tkinter.Tk()
         self.board = board
         self.CELL_WIDTH = 40
         self.CELL_HIEGHT = 42
@@ -18,7 +18,8 @@ class GameOfLife:
 
         Variables:
             canvas: where we draw the cells of the game
-            restart_button: button to restart the game with a new board of random cells
+            restart_button: button to restart the game with a
+                            new board of random cells
         """
         self.canvas = tkinter.Canvas(
             self.parent,
