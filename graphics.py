@@ -8,7 +8,7 @@ class GameOfLife:
         self.parent: tkinter.TK = tkinter.Tk()
         self.board = board
         self.CELL_WIDTH = 40
-        self.CELL_HIEGHT = 41
+        self.CELL_HIEGHT = 42
 
         self.initailizeGUI()
 
@@ -30,7 +30,7 @@ class GameOfLife:
         # draw the first generate cells
         self.draw_board(self.board.get_main_board)
 
-        next_button =  tkinter.Button(
+        next_button = tkinter.Button(
             self.parent, text="next board", command=lambda: self.update_board()
         )
         next_button.pack()
@@ -42,7 +42,7 @@ class GameOfLife:
 
         # excutes the `loop` function after
         # one second of starting the GUI
-        self.parent.after(1000, self.loop)
+        # self.parent.after(1000, self.loop)
 
         self.run()
 
@@ -61,10 +61,10 @@ class GameOfLife:
                         self.draw_rectangle(
                             i,
                             j,
-                            "pink",
+                            "pink",  # chickens color
                         )
                     else:
-                        self.draw_rectangle(i, j, "blue")
+                        self.draw_rectangle(i, j, "blue")  # chicks color
 
                 elif cell.__class__.__name__ == Seed.__name__:
                     if cell.color == "green":

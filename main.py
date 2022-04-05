@@ -26,7 +26,7 @@ class Chicken:
 
         self.status = status
         self._eated_seeds = 0
-        self._able_to_breed = True
+        self._able_to_breed = False
         self._breed_times = 2
 
     def eat_seed(self):
@@ -54,7 +54,11 @@ class Chicken:
         if self.is_chick:
             return False
 
-        if self._breed_times > 0 and self.eated_seeds < 6:
+        if (
+            self._breed_times > 0
+            and self.eated_seeds < 6
+            and self.eated_seeds > 2
+        ):
             return True
 
         return False
@@ -76,7 +80,8 @@ class Chicken:
 class Seed:
     """
     if the seed color is green than any chicken objects can eat it
-    else if the color is yellow than the only chickens that can it the seed are male or female chickens
+    else if the color is yellow than the only chickens that can it
+    the seed are male or female chickens
     """
 
     def __init__(self, color) -> None:
@@ -228,7 +233,8 @@ class Board(object):
                     if isinstance(cell, Chicken):
                         if cell.status == self.CHICKEN:
                             if cell.eated_seeds >= 6:
-                                # kill the chicken object if it eated more than 6 seeds
+                                # kill the chicken object
+                                # if it eated more than 6 seeds
                                 board[cell_pos[0]][
                                     cell_pos[1]
                                 ] = self.EMPTY_CELL
@@ -239,11 +245,13 @@ class Board(object):
                                         cell_pos[1]
                                     ] = self.EMPTY_CELL
                                     board[seed[0]][seed[1]] = cell
+                                    cell.eat_seed()
 
-                                elif cell.able_to_breed:
+                                if cell.able_to_breed:
                                     # spawn new chicken chick
                                     if self.has_free_cells(cell_pos, board):
-                                        # randomly choice a cell to spawn the new chick
+                                        # randomly choice a
+                                        # cell to spawn the new chick
                                         new_chick_cell = choice(
                                             self.get_free_cells(
                                                 cell_pos, board
@@ -257,6 +265,11 @@ class Board(object):
                         elif cell.status == self.CHICK:
                             if cell.eated_seeds >= 3:
                                 cell.status = self.CHICKEN
+
+                                # restore the eated_seeds counter
+                                cell._eated_seeds = 0
+
+                                # replace the old cell with the new one
                                 board[cell_pos[0]][cell_pos[1]] = cell
                             else:
                                 if self.has_seed_neighbour(cell_pos):
@@ -271,6 +284,7 @@ class Board(object):
                                             cell_pos[1]
                                         ] = self.EMPTY_CELL
                                         board[seed[0]][seed[1]] = cell
+                                        cell.eat_seed()
 
         # update the main board
         self.update_main_board(board)
