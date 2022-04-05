@@ -30,6 +30,11 @@ class GameOfLife:
         # draw the first generate cells
         self.draw_board(self.board.get_main_board)
 
+        next_button =  tkinter.Button(
+            self.parent, text="next board", command=lambda: self.update_board()
+        )
+        next_button.pack()
+
         restart_button = tkinter.Button(
             self.parent, text="reset the game", command=lambda: self.rest()
         )
@@ -48,31 +53,26 @@ class GameOfLife:
 
         for i in range(self.board.row):
             for j in range(self.board.column):
-                try:
-                    cell = board[i][j]
 
-                    if cell.__class__.__name__ == Chicken.__name__:
-                        if cell.status == 1 and cell.gender == 0:
-                            img = ImageTk.PhotoImage(file="chicken_chick.png")
-                            self.draw_image(i, j, img)
+                cell = board[i][j]
 
-                            # self.draw_rectangle(
-                            #     i,
-                            #     j,
-                            #     "pink",
-                            # )
-                        elif cell.status == 2:
-                            self.draw_rectangle(i, j, "black")
-                        elif cell.status == 1 and cell.gender == 1:
-                            self.draw_rectangle(i, j, "gray")
+                if cell.__class__.__name__ == Chicken.__name__:
+                    if cell.status == 2:
+                        self.draw_rectangle(
+                            i,
+                            j,
+                            "pink",
+                        )
+                    else:
+                        self.draw_rectangle(i, j, "blue")
 
-                    elif cell.__class__.__name__ == Seed.__name__:
-                        if cell.color == "green":
-                            self.draw_rectangle(i, j, "green")
-                        else:
-                            self.draw_rectangle(i, j, "yellow")
-                except AttributeError:
-                    self.draw_rectangle(i, j, "white")
+                elif cell.__class__.__name__ == Seed.__name__:
+                    if cell.color == "green":
+                        self.draw_rectangle(i, j, "green")
+                    else:
+                        self.draw_rectangle(i, j, "yellow")
+                else:
+                    self.draw_rectangle(i, j, "brown")
 
     def draw_rectangle(self, i, j, color):
         x = self.CELL_WIDTH

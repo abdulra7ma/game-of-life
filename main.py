@@ -11,40 +11,63 @@ class Chicken:
     create a chicken related objects
 
     Logic of constructing a new chicken object:
-        if status = 2 and gender = 1:
-            this object is chicken female
+        if status = 1:
+            this object is chick
+        if status = 2:
+            this object is chicken
 
-        elif status = 2 and gender = 0:
-            this object is chicken male
-
-        else:
-            this object is chicken chick
     """
 
-    def __init__(self, status: int, gender: int) -> None:
+    def __init__(self, status: int) -> None:
         """
         status: indicates the chicken status
                 if chick(status == 0) or chicken(status == 1)
-
-        gender: indicates the chicken gender
-                if gender == 0 than it's male chicken,
-                if gender == 1 than it's female chicken.
         """
 
         self.status = status
-        self.gender = gender
+        self._eated_seeds = 0
+        self._able_to_breed = True
+        self._breed_times = 2
+
+    def eat_seed(self):
+        self._eated_seeds += 1
+
+    @property
+    def able_to_breed(self):
+        if self.can_breed:
+            self._able_to_breed = True
+            return self._able_to_breed
+
+        self._able_to_breed = False
+        return self._able_to_breed
 
     @property
     def is_chick(self):
         return self.status == 1
 
     @property
-    def is_chicken_male(self):
-        return self.status == 2 and self.gender == 0
+    def is_chicken(self):
+        return self.status == 2
 
     @property
-    def is_chicken_female(self):
-        return self.status == 2 and self.gender == 1
+    def can_breed(self):
+        if self.is_chick:
+            return False
+
+        if self._breed_times > 0 and self.eated_seeds < 6:
+            return True
+
+        return False
+
+    @property
+    def eated_seeds(self):
+        return self._eated_seeds
+
+    def has_breed(self):
+        """
+        decrease the number of time a cell can breed
+        """
+        self._breed_times -= 1
 
     def __str__(self) -> str:
         return f"{self.status}"
@@ -79,11 +102,10 @@ class Board(object):
         self.column = column
         self._main_board = self.generate_board()
 
-        self.chick = 1
-        self.chicken = 2
-
-        self.male_chicken = (2, 0)
-        self.female_chicken = (2, 1)
+        self.EMPTY_CELL = 0
+        self.CHICK = 1
+        self.CHICKEN = 2
+        self.SEED = 3
 
     def generate_board(self) -> list:
         board = []
@@ -91,15 +113,19 @@ class Board(object):
         for i in range(self.row):
             board.append([])
             for _ in range(self.column):
-                rand_status = randint(0, 3)
-                rand_gender = randint(0, 1)
+                rand_status = randint(0, 5)  # 20% to spawn a chicken object
+                seed_status = randint(1, 3)  # 33% to spawn a chicken object
 
-                if rand_status == 0:
-                    board[i].append(Chicken(rand_status, rand_gender))
-                elif rand_status == 1:
-                    board[i].append(Chicken(rand_status, rand_gender))
+                if seed_status == 3:
+                    board[i].append(
+                        Seed(choice(SEED_COLORS))
+                    )  # append a seed cell
+                elif rand_status == 2:
+                    board[i].append(
+                        Chicken(rand_status)
+                    )  # append a chicken cell
                 else:
-                    board[i].append(Seed(choice(SEED_COLORS)))
+                    board[i].append(0)  # append an empty cell
 
         return board
 
@@ -156,11 +182,19 @@ class Board(object):
         """
         for indx in self._get_neighbours_indexes(cell_indx):
             try:
-                if self.get_main_board[indx[0]][indx[1]].status == 3:
+                if self.get_main_board[indx[0]][indx[1]].status == self.SEED:
                     return True
             except AttributeError:
                 pass
         return False
+
+    def is_seed_object(self, cell_index):
+        return (
+            True
+            if self.get_main_board[cell_index[0]][cell_index[1]].status
+            == self.SEED
+            else False
+        )
 
     def get_seed_indx(self, cell_indx: tuple) -> tuple:
         """
@@ -168,7 +202,7 @@ class Board(object):
         """
         for indx in self._get_neighbours_indexes(cell_indx):
             try:
-                if self.get_main_board[indx[0]][indx[1]].status == 3:
+                if self.is_seed_object(indx):
                     return indx
             except AttributeError:
                 pass
@@ -176,10 +210,11 @@ class Board(object):
     def eat_seed(
         self, chicken_cell_indx: tuple, seed_cell_indx: tuple, board
     ) -> None:
-        cell = self._main_board[chicken_cell_indx[0]][chicken_cell_indx[1]]
+        cell = self.get_main_board[chicken_cell_indx[0]][chicken_cell_indx[1]]
+        cell.eat_seed()
 
+        board[chicken_cell_indx[0]][chicken_cell_indx[1]] = self.EMPTY_CELL
         board[seed_cell_indx[0]][seed_cell_indx[1]] = cell
-        board[chicken_cell_indx[0]][chicken_cell_indx[1]] = 0
 
     def update_board(self) -> list:
         board = self.get_new_board
@@ -189,21 +224,53 @@ class Board(object):
                 cell_pos = (row, col)
                 cell = self.get_main_board[row][col]
 
-                try:
-                    if cell.status == self.chicken:
-                        if self.has_seed_neighbour(cell_pos):
-                            seed = self.get_seed_indx(cell_pos)
-                            self.eat_seed(cell_pos, seed, board)
-                    elif cell.status == self.chick:
-                        if self.has_seed_neighbour(cell_pos):
-                            seed = self.get_seed_indx(cell_pos)
-                            if (
-                                self.get_main_board[seed[0]][seed[1]].color
-                                == "green"
-                            ):
-                                self.eat_seed(cell_pos, seed, board)
-                except AttributeError:
-                    pass
+                if hasattr(cell, "status"):
+                    if isinstance(cell, Chicken):
+                        if cell.status == self.CHICKEN:
+                            if cell.eated_seeds >= 6:
+                                # kill the chicken object if it eated more than 6 seeds
+                                board[cell_pos[0]][
+                                    cell_pos[1]
+                                ] = self.EMPTY_CELL
+                            else:
+                                if self.has_seed_neighbour(cell_pos):
+                                    seed = self.get_seed_indx(cell_pos)
+                                    board[cell_pos[0]][
+                                        cell_pos[1]
+                                    ] = self.EMPTY_CELL
+                                    board[seed[0]][seed[1]] = cell
+
+                                elif cell.able_to_breed:
+                                    # spawn new chicken chick
+                                    if self.has_free_cells(cell_pos, board):
+                                        # randomly choice a cell to spawn the new chick
+                                        new_chick_cell = choice(
+                                            self.get_free_cells(
+                                                cell_pos, board
+                                            )
+                                        )
+                                        board[new_chick_cell[0]][
+                                            new_chick_cell[1]
+                                        ] = Chicken(status=self.CHICK)
+                                        cell.has_breed()
+
+                        elif cell.status == self.CHICK:
+                            if cell.eated_seeds >= 3:
+                                cell.status = self.CHICKEN
+                                board[cell_pos[0]][cell_pos[1]] = cell
+                            else:
+                                if self.has_seed_neighbour(cell_pos):
+                                    seed = self.get_seed_indx(cell_pos)
+                                    if (
+                                        self.get_main_board[seed[0]][
+                                            seed[1]
+                                        ].color
+                                        == "green"
+                                    ):
+                                        board[cell_pos[0]][
+                                            cell_pos[1]
+                                        ] = self.EMPTY_CELL
+                                        board[seed[0]][seed[1]] = cell
 
         # update the main board
         self.update_main_board(board)
@@ -222,6 +289,28 @@ class Board(object):
     def set_main_board(self, board):
         self._main_board = board
 
+    def has_free_cells(self, cell_pos, board) -> bool:
+        """
+        checks if one cell has free cells or not
+        """
+        cells = self._get_neighbours_indexes(cell_pos)
+        return (
+            True
+            if len([cell for cell in cells if board[cell[0]][cell[1]] == 0])
+            > 1
+            else False
+        )
+
+    def get_free_cells(self, cell_pos, board) -> list:
+        """
+        Get all the free cells around one cell
+        """
+        return [
+            cell
+            for cell in self._get_neighbours_indexes(cell_pos)
+            if board[cell[0]][cell[1]] == 0
+        ]
+
 
 if __name__ == "__main__":
     from graphics import GameOfLife
@@ -229,5 +318,5 @@ if __name__ == "__main__":
     row = int(input("Rows of the board: "))
     column = int(input("Columns of the board: "))
 
-    board = Board(row, column)
+    board = Board(column, row)
     GameOfLife(board)
