@@ -31,10 +31,10 @@ class GameOfLife:
         # draw the first generate cells
         self.draw_board(self.board.get_main_board)
 
-        next_button = tkinter.Button(
-            self.parent, text="next board", command=lambda: self.update_board()
-        )
-        next_button.pack()
+        # next_button = tkinter.Button(
+        #     self.parent, text="next board", command=lambda: self.update_board()
+        # )
+        # next_button.pack()
 
         restart_button = tkinter.Button(
             self.parent, text="reset the game", command=lambda: self.rest()
@@ -43,7 +43,7 @@ class GameOfLife:
 
         # excutes the `loop` function after
         # one second of starting the GUI
-        # self.parent.after(1000, self.loop)
+        self.parent.after(1000, self.loop)
 
         self.run()
 
